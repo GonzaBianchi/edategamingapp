@@ -4,13 +4,14 @@ import { useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, Loader, Unlink } from "lucide-react";
-import { getIconImageUrl } from "@/lib/constants/games";
+import { getIconImageUrl, LOL_SERVERS } from "@/lib/constants/games";
 import { toast } from "sonner";
 
 interface RiotAccount {
   gameName: string;
   tagLine: string;
   puuid: string;
+  server: string;
   verified: boolean;
   showStats: boolean;
 }
@@ -23,8 +24,6 @@ interface RiotVerifySectionProps {
 }
 
 type Step = "input" | "pending" | "checking";
-
-const LOL_SERVERS = ["LAS", "LAN", "NA", "EUW", "EUNE", "KR", "BR", "OCE"];
 
 export function RiotVerifySection({ riotAccount, lolServer, onVerified, onUnlink }: RiotVerifySectionProps) {
   const [gameName, setGameName] = useState("");
@@ -76,7 +75,7 @@ export function RiotVerifySection({ riotAccount, lolServer, onVerified, onUnlink
       const data = await res.json();
 
       if (data.verified) {
-        onVerified({ gameName, tagLine, puuid, verified: true, showStats });
+        onVerified({ gameName, tagLine, puuid, server, verified: true, showStats });
         toast.success("¡Cuenta de Riot verificada!");
         setStep("input");
         setGameName("");

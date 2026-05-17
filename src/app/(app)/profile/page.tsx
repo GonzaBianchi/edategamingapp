@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LogOut, Pencil, CheckCircle, User } from "lucide-react";
 import { PhotoUpload } from "@/components/profile/PhotoUpload";
+import { getCountry } from "@/lib/constants/countries";
 
 interface UserProfile {
   username: string;
@@ -15,13 +16,16 @@ interface UserProfile {
   photos: string[];
   bio: string;
   age: number;
+  nationality: string;
+  lookingFor: string[];
   riotAccount?: {
     gameName: string;
     tagLine: string;
+    server?: string;
     verified: boolean;
     showStats: boolean;
   };
-  games: { name: string; rank: string; role: string; server: string }[];
+  games: { name: string; rank: string; roles: string[]; servers: string[] }[];
   schedule: string[];
 }
 
@@ -31,6 +35,13 @@ const SCHEDULE_LABELS: Record<string, string> = {
   noches: "Noches",
   madrugadas: "Madrugadas",
   finde: "Fines de semana",
+};
+
+const LOOKING_FOR_LABELS: Record<string, string> = {
+  duo: "Duo",
+  pareja: "Pareja",
+  ambos: "Duo o pareja",
+  no_se: "No sé",
 };
 
 export default function ProfilePage() {
@@ -45,6 +56,7 @@ export default function ProfilePage() {
   }, []);
 
   const mainPhoto = profile?.avatar || session?.user?.image || null;
+  const country = profile?.nationality ? getCountry(profile.nationality) : null;
 
   if (loading) {
     return (
@@ -77,9 +89,22 @@ export default function ProfilePage() {
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-lg font-bold truncate">{profile?.username || session?.user?.name}</p>
-          {profile?.age && (
-            <p className="text-sm text-zinc-400">{profile.age} años</p>
+          <div className="flex items-center gap-2">
+            <p className="text-lg font-bold truncate">{profile?.username || session?.user?.name}</p>
+            {country && <span className="text-xl leading-none">{country.flag}</span>}
+          </div>
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+            {profile?.age ? (
+              <span className="text-sm text-zinc-400">{profile.age} años</span>
+            ) : null}
+            {country && (
+              <span className="text-sm text-zinc-500">{country.name}</span>
+            )}
+          </div>
+          {profile?.lookingFor && profile.lookingFor.length > 0 && (
+            <p className="mt-1 text-xs text-violet-400">
+              {profile.lookingFor.map((v) => LOOKING_FOR_LABELS[v]).filter(Boolean).join(" · ")}
+            </p>
           )}
           {profile?.bio && (
             <p className="mt-1 text-sm text-zinc-400 line-clamp-2">{profile.bio}</p>
@@ -104,12 +129,17 @@ export default function ProfilePage() {
         {profile?.riotAccount ? (
           <div className="flex items-center gap-2">
             <CheckCircle size={16} className="text-green-400 shrink-0" />
-            <span className="font-medium">
-              {profile.riotAccount.gameName}
-              <span className="text-zinc-500">#{profile.riotAccount.tagLine}</span>
-            </span>
+            <div className="flex-1 min-w-0">
+              <span className="font-medium">
+                {profile.riotAccount.gameName}
+                <span className="text-zinc-500">#{profile.riotAccount.tagLine}</span>
+              </span>
+              {profile.riotAccount.server && (
+                <span className="ml-2 text-xs text-zinc-500">· {profile.riotAccount.server}</span>
+              )}
+            </div>
             {profile.riotAccount.showStats && (
-              <Badge variant="secondary" className="ml-auto text-[10px]">Stats visibles</Badge>
+              <Badge variant="secondary" className="text-[10px] shrink-0">Stats visibles</Badge>
             )}
           </div>
         ) : (
@@ -121,17 +151,35 @@ export default function ProfilePage() {
       {(profile?.games?.length ?? 0) > 0 && (
         <div className="mt-4 rounded-xl bg-zinc-800/60 p-5">
           <p className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">Juegos</p>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
             {profile!.games.map((game) => (
-              <div key={game.name} className="flex items-center justify-between">
-                <span className="text-sm font-medium">
-                  {game.name === "League of Legends" ? "League of Legends" : "Valorant"}
-                </span>
-                <div className="flex gap-1.5">
-                  {game.rank && <Badge variant="outline" className="border-zinc-600 text-xs">{game.rank}</Badge>}
-                  {game.role && <Badge variant="outline" className="border-zinc-600 text-xs">{game.role}</Badge>}
-                  {game.server && <Badge variant="outline" className="border-zinc-600 text-xs">{game.server}</Badge>}
+              <div key={game.name}>
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="text-sm font-semibold text-violet-400">
+                    {game.name === "League of Legends" ? "League of Legends" : "Valorant"}
+                  </span>
+                  {game.rank && (
+                    <Badge variant="outline" className="border-zinc-600 text-xs">{game.rank}</Badge>
+                  )}
                 </div>
+                {game.roles?.length > 0 && (
+                  <div className="mb-1.5 flex flex-wrap gap-1.5">
+                    <span className="text-xs text-zinc-600 self-center">
+                      {game.name === "League of Legends" ? "Roles:" : "Agentes:"}
+                    </span>
+                    {game.roles.map((r) => (
+                      <Badge key={r} variant="secondary" className="bg-zinc-700/80 text-zinc-300 text-xs">{r}</Badge>
+                    ))}
+                  </div>
+                )}
+                {game.servers?.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    <span className="text-xs text-zinc-600 self-center">Svr:</span>
+                    {game.servers.map((s) => (
+                      <Badge key={s} variant="outline" className="border-zinc-700 text-zinc-400 text-xs">{s}</Badge>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>

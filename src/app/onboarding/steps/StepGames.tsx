@@ -1,27 +1,12 @@
 "use client";
 
-import { OnboardingData, GameData } from "../page";
+import { GAMES_CONFIG, GAME_NAMES, GameName } from "@/lib/constants/games";
+import { OnboardingData } from "../page";
 
 interface Props {
   data: OnboardingData;
   update: (p: Partial<OnboardingData>) => void;
 }
-
-const GAMES_CONFIG = {
-  "League of Legends": {
-    ranks: ["Hierro", "Bronce", "Plata", "Oro", "Platino", "Esmeralda", "Diamante", "Maestro", "Gran Maestro", "Desafiante"],
-    roles: ["Top", "Jungla", "Mid", "ADC", "Support"],
-    servers: ["LAS", "LAN", "NA", "EUW", "EUNE", "KR", "BR", "OCE"],
-  },
-  Valorant: {
-    ranks: ["Hierro", "Bronce", "Plata", "Oro", "Platino", "Diamante", "Ascendente", "Inmortal", "Radiante"],
-    roles: ["Duelista", "Iniciador", "Centinela", "Controlador"],
-    servers: ["Santiago", "Bogotá", "Miami", "Chicago", "Ciudad de México"],
-  },
-} as const;
-
-type GameName = keyof typeof GAMES_CONFIG;
-const GAME_NAMES = Object.keys(GAMES_CONFIG) as GameName[];
 
 export function StepGames({ data, update }: Props) {
   function toggleGame(name: GameName) {
@@ -29,18 +14,35 @@ export function StepGames({ data, update }: Props) {
     if (exists) {
       update({ games: data.games.filter((g) => g.name !== name) });
     } else {
-      update({
-        games: [
-          ...data.games,
-          { name, rank: "", role: "", server: "" },
-        ],
-      });
+      update({ games: [...data.games, { name, rank: "", roles: [], servers: [] }] });
     }
   }
 
-  function updateGame(name: GameName, field: keyof GameData, value: string) {
+  function updateGame(name: GameName, field: "rank", value: string) {
+    update({ games: data.games.map((g) => (g.name === name ? { ...g, [field]: value } : g)) });
+  }
+
+  function toggleRole(name: GameName, role: string) {
     update({
-      games: data.games.map((g) => (g.name === name ? { ...g, [field]: value } : g)),
+      games: data.games.map((g) => {
+        if (g.name !== name) return g;
+        const roles = g.roles.includes(role)
+          ? g.roles.filter((r) => r !== role)
+          : [...g.roles, role];
+        return { ...g, roles };
+      }),
+    });
+  }
+
+  function toggleServer(name: GameName, server: string) {
+    update({
+      games: data.games.map((g) => {
+        if (g.name !== name) return g;
+        const servers = g.servers.includes(server)
+          ? g.servers.filter((s) => s !== server)
+          : [...g.servers, server];
+        return { ...g, servers };
+      }),
     });
   }
 
@@ -90,26 +92,51 @@ export function StepGames({ data, update }: Props) {
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-xs text-zinc-400">Rol / Agente</label>
-                <select
-                  value={game.role}
-                  onChange={(e) => updateGame(game.name, "role", e.target.value)}
-                  className="w-full rounded-lg border border-zinc-600 bg-zinc-700 px-3 py-2 text-sm text-white outline-none focus:border-violet-500"
-                >
-                  <option value="">Seleccioná tu rol</option>
-                  {config.roles.map((r) => <option key={r} value={r}>{r}</option>)}
-                </select>
+                <label className="mb-1.5 block text-xs text-zinc-400">
+                  {game.name === "League of Legends" ? "Roles" : "Agentes"}{" "}
+                  <span className="text-zinc-600">(podés elegir varios)</span>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {config.roles.map((r) => {
+                    const active = (game.roles ?? []).includes(r);
+                    return (
+                      <button
+                        key={r}
+                        onClick={() => toggleRole(game.name, r)}
+                        className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
+                          active
+                            ? "border-violet-500 bg-violet-500/15 text-violet-300"
+                            : "border-zinc-600 text-zinc-400 hover:border-zinc-500"
+                        }`}
+                      >
+                        {r}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               <div>
-                <label className="mb-1 block text-xs text-zinc-400">Servidor</label>
-                <select
-                  value={game.server}
-                  onChange={(e) => updateGame(game.name, "server", e.target.value)}
-                  className="w-full rounded-lg border border-zinc-600 bg-zinc-700 px-3 py-2 text-sm text-white outline-none focus:border-violet-500"
-                >
-                  <option value="">Seleccioná tu servidor</option>
-                  {config.servers.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
+                <label className="mb-1.5 block text-xs text-zinc-400">
+                  Servidores <span className="text-zinc-600">(podés elegir varios)</span>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {config.servers.map((s) => {
+                    const active = game.servers.includes(s);
+                    return (
+                      <button
+                        key={s}
+                        onClick={() => toggleServer(game.name, s)}
+                        className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
+                          active
+                            ? "border-violet-500 bg-violet-500/15 text-violet-300"
+                            : "border-zinc-600 text-zinc-400 hover:border-zinc-500"
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>

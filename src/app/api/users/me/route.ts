@@ -21,7 +21,7 @@ export async function PUT(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const body = await req.json();
-  const { age, bio, riotAccount, games, schedule, lookingFor, onboardingComplete } = body;
+  const { age, bio, photos, nationality, riotAccount, games, schedule, lookingFor, onboardingComplete } = body;
 
   if (age !== undefined && age < 13) {
     return NextResponse.json({ error: "Debés tener al menos 13 años" }, { status: 400 });
@@ -31,7 +31,7 @@ export async function PUT(req: NextRequest) {
 
   const updated = await User.findByIdAndUpdate(
     session.user.id,
-    { $set: { age, bio, riotAccount, games, schedule, lookingFor, onboardingComplete } },
+    { $set: { age, bio, photos, nationality, riotAccount, games, schedule, lookingFor, onboardingComplete } },
     { new: true, runValidators: true }
   ).lean();
 

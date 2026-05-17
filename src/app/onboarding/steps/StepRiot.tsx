@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, Loader } from "lucide-react";
 import { OnboardingData, RiotAccountData } from "../page";
+import { LOL_SERVERS } from "@/lib/constants/games";
 
 interface Props {
   data: OnboardingData;
@@ -13,6 +14,7 @@ interface Props {
 export function StepRiot({ data, update }: Props) {
   const [gameName, setGameName] = useState(data.riotAccount?.gameName ?? "");
   const [tagLine, setTagLine] = useState(data.riotAccount?.tagLine ?? "");
+  const [server, setServer] = useState(data.riotAccount?.server ?? "LAS");
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -37,6 +39,7 @@ export function StepRiot({ data, update }: Props) {
         gameName: json.account.gameName,
         tagLine: json.account.tagLine,
         puuid: json.account.puuid,
+        server,
         verified: true,
         showStats: true,
       };
@@ -94,6 +97,17 @@ export function StepRiot({ data, update }: Props) {
           <p className="mt-1.5 text-xs text-zinc-600">
             El tag es lo que aparece después del # en tu nick (ej: LAS, NA1, EUW)
           </p>
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-zinc-300">Servidor de LoL</label>
+          <select
+            value={server}
+            onChange={(e) => setServer(e.target.value)}
+            className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm text-white outline-none focus:border-violet-500 transition-colors"
+          >
+            {LOL_SERVERS.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
         </div>
 
         <Button

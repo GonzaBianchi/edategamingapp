@@ -10,7 +10,9 @@ export async function GET(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
-  const game = searchParams.get("game"); // filtro opcional por juego
+  const game = searchParams.get("game");
+  const lookingFor = searchParams.get("lookingFor");
+  const server = searchParams.get("server");
 
   await connectDB();
 
@@ -32,9 +34,9 @@ export async function GET(req: NextRequest) {
     onboardingComplete: true,
   };
 
-  if (game) {
-    filter["games.name"] = game;
-  }
+  if (game) filter["games.name"] = game;
+  if (lookingFor) filter["lookingFor"] = { $in: [lookingFor] };
+  if (server) filter["games.servers"] = { $in: [server] };
 
   const profiles = await User.find(filter)
     .select("username avatar photos bio age nationality lookingFor games riotAccount schedule")

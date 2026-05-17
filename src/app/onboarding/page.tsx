@@ -12,14 +12,15 @@ import { StepPreferences } from "./steps/StepPreferences";
 export interface GameData {
   name: "League of Legends" | "Valorant";
   rank: string;
-  role: string;
-  server: string;
+  roles: string[];
+  servers: string[];
 }
 
 export interface RiotAccountData {
   gameName: string;
   tagLine: string;
   puuid: string;
+  server: string;
   verified: boolean;
   showStats: boolean;
 }
@@ -32,7 +33,7 @@ export interface OnboardingData {
   riotAccount: RiotAccountData | null;
   games: GameData[];
   schedule: string[];
-  lookingFor: string;
+  lookingFor: string[];
 }
 
 const STEPS = ["Sobre vos", "Cuenta Riot", "Tus juegos", "¿Qué buscás?"];
@@ -45,7 +46,7 @@ const INITIAL: OnboardingData = {
   riotAccount: null,
   games: [],
   schedule: [],
-  lookingFor: "no_se",
+  lookingFor: [],
 };
 
 export default function OnboardingPage() {

@@ -13,14 +13,15 @@ import { COUNTRIES, LOOKING_FOR_OPTIONS } from "@/lib/constants/countries";
 interface GameData {
   name: GameName;
   rank: string;
-  role: string;
-  server: string;
+  roles: string[];
+  servers: string[];
 }
 
 interface RiotAccount {
   gameName: string;
   tagLine: string;
   puuid: string;
+  server: string;
   verified: boolean;
   showStats: boolean;
 }
@@ -30,7 +31,7 @@ interface ProfileData {
   bio: string;
   age: number | "";
   nationality: string;
-  lookingFor: string;
+  lookingFor: string[];
   riotAccount: RiotAccount | null;
   games: GameData[];
   schedule: string[];
@@ -47,7 +48,7 @@ const SCHEDULE_OPTIONS = [
 export default function EditProfilePage() {
   const router = useRouter();
   const [profile, setProfile] = useState<ProfileData>({
-    photos: [], bio: "", age: "", nationality: "", lookingFor: "no_se", riotAccount: null, games: [], schedule: [],
+    photos: [], bio: "", age: "", nationality: "", lookingFor: [], riotAccount: null, games: [], schedule: [],
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -62,9 +63,15 @@ export default function EditProfilePage() {
             bio: d.user.bio ?? "",
             age: d.user.age ?? "",
             nationality: d.user.nationality ?? "",
-            lookingFor: d.user.lookingFor ?? "no_se",
+            lookingFor: Array.isArray(d.user.lookingFor)
+              ? d.user.lookingFor
+              : d.user.lookingFor ? [d.user.lookingFor] : [],
             riotAccount: d.user.riotAccount ?? null,
-            games: d.user.games ?? [],
+            games: (d.user.games ?? []).map((g: GameData & { server?: string; role?: string }) => ({
+              ...g,
+              roles: g.roles ?? (g.role ? [g.role] : []),
+              servers: g.servers ?? (g.server ? [g.server] : []),
+            })),
             schedule: d.user.schedule ?? [],
           });
         }
@@ -81,13 +88,48 @@ export default function EditProfilePage() {
     if (exists) {
       update({ games: profile.games.filter((g) => g.name !== name) });
     } else {
-      update({ games: [...profile.games, { name, rank: "", role: "", server: "" }] });
+      update({ games: [...profile.games, { name, rank: "", roles: [], servers: [] }] });
     }
   }
 
-  function updateGame(name: GameName, field: keyof GameData, value: string) {
+  function updateGame(name: GameName, field: "rank", value: string) {
     update({
       games: profile.games.map((g) => (g.name === name ? { ...g, [field]: value } : g)),
+    });
+  }
+
+  function toggleRole(name: GameName, role: string) {
+    update({
+      games: profile.games.map((g) => {
+        if (g.name !== name) return g;
+        const current = g.roles ?? [];
+        const roles = current.includes(role)
+          ? current.filter((r) => r !== role)
+          : [...current, role];
+        return { ...g, roles };
+      }),
+    });
+  }
+
+  function toggleLookingFor(value: string) {
+    const current = profile.lookingFor;
+    update({
+      lookingFor: current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value],
+    });
+  }
+
+  function toggleServer(name: GameName, server: string) {
+    update({
+      games: profile.games.map((g) => {
+        if (g.name !== name) return g;
+        const current = g.servers ?? [];
+        const servers = current.includes(server)
+          ? current.filter((s) => s !== server)
+          : [...current, server];
+        return { ...g, servers };
+      }),
     });
   }
 
@@ -185,15 +227,16 @@ export default function EditProfilePage() {
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-zinc-300">¿Qué buscás?</label>
+              <label className="mb-1 block text-sm font-medium text-zinc-300">¿Qué buscás?</label>
+              <p className="mb-2 text-xs text-zinc-500">Podés elegir más de una opción</p>
               <div className="grid grid-cols-2 gap-2">
                 {LOOKING_FOR_OPTIONS.map(({ value, label, description }) => (
                   <button
                     key={value}
                     type="button"
-                    onClick={() => update({ lookingFor: value })}
+                    onClick={() => toggleLookingFor(value)}
                     className={`flex flex-col items-start rounded-xl border-2 px-3 py-2.5 text-left transition-all ${
-                      profile.lookingFor === value
+                      profile.lookingFor.includes(value)
                         ? "border-violet-500 bg-violet-500/10 text-violet-300"
                         : "border-zinc-700 text-zinc-400 hover:border-zinc-600"
                     }`}
@@ -224,7 +267,7 @@ export default function EditProfilePage() {
           <p className="mb-4 text-xs font-medium uppercase tracking-wider text-zinc-500">Cuenta Riot</p>
           <RiotVerifySection
             riotAccount={profile.riotAccount}
-            lolServer={lolGame?.server ?? "LAS"}
+            lolServer={lolGame?.servers?.[0] ?? "LAS"}
             onVerified={(account) => update({ riotAccount: account })}
             onUnlink={() => update({ riotAccount: null })}
           />
@@ -261,21 +304,62 @@ export default function EditProfilePage() {
                   {game.name === "League of Legends" ? "League of Legends" : "Valorant"}
                 </p>
                 <div className="flex flex-col gap-2">
-                  {(["rank", "role", "server"] as const).map((field) => (
-                    <select
-                      key={field}
-                      value={game[field]}
-                      onChange={(e) => updateGame(game.name, field, e.target.value)}
-                      className="w-full rounded-lg border border-zinc-600 bg-zinc-700 px-3 py-2 text-sm text-white outline-none focus:border-violet-500"
-                    >
-                      <option value="">
-                        {field === "rank" ? "Rango" : field === "role" ? "Rol" : "Servidor"}
-                      </option>
-                      {config[`${field}s` as "ranks" | "roles" | "servers"].map((v) => (
-                        <option key={v} value={v}>{v}</option>
-                      ))}
-                    </select>
-                  ))}
+                  <select
+                    value={game.rank}
+                    onChange={(e) => updateGame(game.name, "rank", e.target.value)}
+                    className="w-full rounded-lg border border-zinc-600 bg-zinc-700 px-3 py-2 text-sm text-white outline-none focus:border-violet-500"
+                  >
+                    <option value="">Rango</option>
+                    {config.ranks.map((v) => (
+                      <option key={v} value={v}>{v}</option>
+                    ))}
+                  </select>
+                  <div>
+                    <p className="mb-1.5 text-xs text-zinc-400">
+                      {game.name === "League of Legends" ? "Roles" : "Agentes"}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {config.roles.map((r) => {
+                        const active = (game.roles ?? []).includes(r);
+                        return (
+                          <button
+                            key={r}
+                            type="button"
+                            onClick={() => toggleRole(game.name, r)}
+                            className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition-all ${
+                              active
+                                ? "border-violet-500 bg-violet-500/15 text-violet-300"
+                                : "border-zinc-600 text-zinc-400 hover:border-zinc-500"
+                            }`}
+                          >
+                            {r}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="mb-1.5 text-xs text-zinc-400">Servidores</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {config.servers.map((s) => {
+                        const active = (game.servers ?? []).includes(s);
+                        return (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => toggleServer(game.name, s)}
+                            className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition-all ${
+                              active
+                                ? "border-violet-500 bg-violet-500/15 text-violet-300"
+                                : "border-zinc-600 text-zinc-400 hover:border-zinc-500"
+                            }`}
+                          >
+                            {s}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               </div>
             );

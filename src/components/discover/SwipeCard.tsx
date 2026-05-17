@@ -10,8 +10,8 @@ import { getCountry } from "@/lib/constants/countries";
 interface GameInfo {
   name: string;
   rank: string;
-  role: string;
-  server: string;
+  roles?: string[];
+  servers?: string[];
 }
 
 const LOOKING_FOR_LABELS: Record<string, string> = {
@@ -29,7 +29,7 @@ interface Profile {
   bio: string;
   age: number;
   nationality: string;
-  lookingFor: string;
+  lookingFor: string[];
   games: GameInfo[];
   riotAccount?: { gameName: string; tagLine: string; showStats: boolean };
 }
@@ -106,8 +106,10 @@ export function SwipeCard({ profile, onSwipe, isTop }: SwipeCardProps) {
                   {profile.riotAccount.gameName}#{profile.riotAccount.tagLine}
                 </p>
               )}
-              {profile.lookingFor && (
-                <p className="text-xs text-violet-300">{LOOKING_FOR_LABELS[profile.lookingFor]}</p>
+              {profile.lookingFor?.length > 0 && (
+                <p className="text-xs text-violet-300">
+                  {profile.lookingFor.map((v) => LOOKING_FOR_LABELS[v]).filter(Boolean).join(" · ")}
+                </p>
               )}
               {profile.bio && (
                 <p className="mt-1 line-clamp-2 text-sm text-zinc-400">{profile.bio}</p>
@@ -123,7 +125,7 @@ export function SwipeCard({ profile, onSwipe, isTop }: SwipeCardProps) {
                 variant="secondary"
                 className="bg-violet-500/20 text-violet-300 border-violet-500/30"
               >
-                {game.name === "League of Legends" ? "LoL" : "VAL"} · {game.rank} · {game.role}
+                {game.name === "League of Legends" ? "LoL" : "VAL"} · {game.rank}{game.roles?.length ? ` · ${game.roles.join("/")}` : ""}
               </Badge>
             ))}
           </div>

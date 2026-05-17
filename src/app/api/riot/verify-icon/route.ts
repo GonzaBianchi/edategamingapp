@@ -74,6 +74,7 @@ export async function POST(req: NextRequest) {
           gameName,
           tagLine,
           puuid,
+          server,
           verified: true,
           showStats: true,
         },

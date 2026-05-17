@@ -35,14 +35,22 @@ export function StepPreferences({ data, update }: Props) {
 
       {/* ¿Qué buscás? */}
       <div>
-        <p className="mb-3 text-sm font-medium text-zinc-300">¿Qué buscás?</p>
+        <p className="mb-1 text-sm font-medium text-zinc-300">¿Qué buscás?</p>
+        <p className="mb-3 text-xs text-zinc-500">Podés elegir más de una opción</p>
         <div className="grid grid-cols-2 gap-2">
           {LOOKING_FOR_OPTIONS.map(({ value, label, description }) => {
-            const selected = data.lookingFor === value;
+            const selected = data.lookingFor.includes(value);
             return (
               <button
                 key={value}
-                onClick={() => update({ lookingFor: value })}
+                onClick={() => {
+                  const current = data.lookingFor;
+                  update({
+                    lookingFor: selected
+                      ? current.filter((v) => v !== value)
+                      : [...current, value],
+                  });
+                }}
                 className={`flex flex-col items-start rounded-xl border-2 px-4 py-3 text-left transition-all ${
                   selected
                     ? "border-violet-500 bg-violet-500/10 text-violet-300"

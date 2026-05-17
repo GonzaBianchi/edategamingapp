@@ -3,14 +3,15 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IGame {
   name: "League of Legends" | "Valorant";
   rank: string;
-  role: string;
-  server: string;
+  roles: string[];
+  servers: string[];
 }
 
 export interface IRiotAccount {
   gameName: string;
   tagLine: string;
   puuid: string;
+  server: string;
   verified: boolean;
   showStats: boolean;
 }
@@ -26,7 +27,7 @@ export interface IUser extends Document {
   games: IGame[];
   nationality: string;
   schedule: string[];
-  lookingFor: "duo" | "pareja" | "ambos" | "no_se";
+  lookingFor: string[];
   swipedRight: mongoose.Types.ObjectId[];
   swipedLeft: mongoose.Types.ObjectId[];
   matches: mongoose.Types.ObjectId[];
@@ -38,14 +39,15 @@ export interface IUser extends Document {
 const GameSchema = new Schema<IGame>({
   name: { type: String, enum: ["League of Legends", "Valorant"], required: true },
   rank: { type: String, default: "" },
-  role: { type: String, default: "" },
-  server: { type: String, default: "" },
+  roles: { type: [String], default: [] },
+  servers: { type: [String], default: [] },
 });
 
 const RiotAccountSchema = new Schema<IRiotAccount>({
   gameName: { type: String, required: true },
   tagLine: { type: String, required: true },
   puuid: { type: String, default: "" },
+  server: { type: String, default: "" },
   verified: { type: Boolean, default: false },
   showStats: { type: Boolean, default: true },
 });
@@ -62,7 +64,7 @@ const UserSchema = new Schema<IUser>(
     games: { type: [GameSchema], default: [] },
     nationality: { type: String, default: "" },
     schedule: { type: [String], default: [] },
-    lookingFor: { type: String, enum: ["duo", "pareja", "ambos", "no_se"], default: "no_se" },
+    lookingFor: { type: [String], default: [] },
     swipedRight: [{ type: Schema.Types.ObjectId, ref: "User" }],
     swipedLeft: [{ type: Schema.Types.ObjectId, ref: "User" }],
     matches: [{ type: Schema.Types.ObjectId, ref: "User" }],

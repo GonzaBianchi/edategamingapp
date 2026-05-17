@@ -14,25 +14,38 @@ interface Profile {
   bio: string;
   age: number;
   nationality: string;
-  lookingFor: string;
-  games: { name: string; rank: string; role: string; server: string }[];
+  lookingFor: string[];
+  games: { name: string; rank: string; roles: string[]; servers: string[] }[];
   riotAccount?: { gameName: string; tagLine: string; showStats: boolean };
 }
+
+const LOOKING_FOR_LABELS: Record<string, string> = {
+  duo: "Duo",
+  pareja: "Pareja",
+  ambos: "Duo/pareja",
+  no_se: "No sé",
+};
 
 export default function DiscoverPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [gameFilter, setGameFilter] = useState<string>("all");
+  const [lookingForFilter, setLookingForFilter] = useState<string>("all");
+  const [serverFilter, setServerFilter] = useState<string>("all");
   const [matchData, setMatchData] = useState<{ matched: boolean; matchId?: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProfiles = useCallback(async () => {
     setLoading(true);
-    const params = gameFilter !== "all" ? `?game=${encodeURIComponent(gameFilter)}` : "";
-    const res = await fetch(`/api/users/discover${params}`);
+    const params = new URLSearchParams();
+    if (gameFilter !== "all") params.set("game", gameFilter);
+    if (lookingForFilter !== "all") params.set("lookingFor", lookingForFilter);
+    if (serverFilter !== "all") params.set("server", serverFilter);
+    const query = params.toString();
+    const res = await fetch(`/api/users/discover${query ? `?${query}` : ""}`);
     const data = await res.json();
     setProfiles(data.profiles ?? []);
     setLoading(false);
-  }, [gameFilter]);
+  }, [gameFilter, lookingForFilter, serverFilter]);
 
   useEffect(() => {
     fetchProfiles();
@@ -64,11 +77,47 @@ export default function DiscoverPage() {
   return (
     <div className="flex h-[100dvh] flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4">
+      <div className="flex items-center justify-between px-5 pt-4 pb-2">
         <h1 className="text-xl font-bold">
           <span className="text-violet-400">E</span>date
         </h1>
         <GameFilter value={gameFilter} onChange={setGameFilter} />
+      </div>
+
+      {/* Filtros secundarios */}
+      <div className="flex gap-2 overflow-x-auto px-5 pb-3 scrollbar-none">
+        {/* Qué buscan */}
+        {[
+          { value: "all", label: "Todos" },
+          ...Object.entries(LOOKING_FOR_LABELS).map(([value, label]) => ({ value, label })),
+        ].map(({ value, label }) => (
+          <button
+            key={value}
+            onClick={() => setLookingForFilter(value)}
+            className={`shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+              lookingForFilter === value
+                ? "border-violet-500 bg-violet-500/20 text-violet-300"
+                : "border-zinc-700 text-zinc-400 hover:border-zinc-600"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+        <div className="mx-1 h-5 self-center border-l border-zinc-700" />
+        {/* Servidor */}
+        {["all", "LAS", "LAN", "NA", "EUW", "EUNE", "KR", "BR", "OCE", "Santiago", "Bogotá", "Miami", "Chicago", "Ciudad de México"].map((s) => (
+          <button
+            key={s}
+            onClick={() => setServerFilter(s)}
+            className={`shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+              serverFilter === s
+                ? "border-cyan-500 bg-cyan-500/20 text-cyan-300"
+                : "border-zinc-700 text-zinc-400 hover:border-zinc-600"
+            }`}
+          >
+            {s === "all" ? "Svr: Todos" : s}
+          </button>
+        ))}
       </div>
 
       {/* Stack de cards */}

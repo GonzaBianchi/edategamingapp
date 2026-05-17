@@ -13,6 +13,7 @@ export const GAMES_CONFIG = {
 
 export type GameName = keyof typeof GAMES_CONFIG;
 export const GAME_NAMES = Object.keys(GAMES_CONFIG) as GameName[];
+export const LOL_SERVERS = GAMES_CONFIG["League of Legends"].servers as unknown as string[];
 
 export const SERVER_TO_REGION: Record<string, string> = {
   LAS: "la2", LAN: "la1", NA: "na1", EUW: "euw1",
