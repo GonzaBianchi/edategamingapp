@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { PhotoUpload } from "@/components/profile/PhotoUpload";
 import { RiotVerifySection } from "@/components/profile/RiotVerifySection";
 import { GAME_NAMES, GAMES_CONFIG, GameName } from "@/lib/constants/games";
+import { COUNTRIES, LOOKING_FOR_OPTIONS } from "@/lib/constants/countries";
 
 interface GameData {
   name: GameName;
@@ -28,6 +29,8 @@ interface ProfileData {
   photos: string[];
   bio: string;
   age: number | "";
+  nationality: string;
+  lookingFor: string;
   riotAccount: RiotAccount | null;
   games: GameData[];
   schedule: string[];
@@ -44,7 +47,7 @@ const SCHEDULE_OPTIONS = [
 export default function EditProfilePage() {
   const router = useRouter();
   const [profile, setProfile] = useState<ProfileData>({
-    photos: [], bio: "", age: "", riotAccount: null, games: [], schedule: [],
+    photos: [], bio: "", age: "", nationality: "", lookingFor: "no_se", riotAccount: null, games: [], schedule: [],
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -58,6 +61,8 @@ export default function EditProfilePage() {
             photos: d.user.photos ?? [],
             bio: d.user.bio ?? "",
             age: d.user.age ?? "",
+            nationality: d.user.nationality ?? "",
+            lookingFor: d.user.lookingFor ?? "no_se",
             riotAccount: d.user.riotAccount ?? null,
             games: d.user.games ?? [],
             schedule: d.user.schedule ?? [],
@@ -106,6 +111,8 @@ export default function EditProfilePage() {
         body: JSON.stringify({
           bio: profile.bio,
           age: profile.age !== "" ? Number(profile.age) : undefined,
+          nationality: profile.nationality,
+          lookingFor: profile.lookingFor,
           games: profile.games,
           schedule: profile.schedule,
           riotAccount: profile.riotAccount,
@@ -153,6 +160,19 @@ export default function EditProfilePage() {
           <p className="mb-4 text-xs font-medium uppercase tracking-wider text-zinc-500">Datos personales</p>
           <div className="flex flex-col gap-4">
             <div>
+              <label className="mb-1.5 block text-sm font-medium text-zinc-300">País</label>
+              <select
+                value={profile.nationality}
+                onChange={(e) => update({ nationality: e.target.value })}
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm text-white outline-none focus:border-violet-500 transition-colors"
+              >
+                <option value="">Seleccioná tu país</option>
+                {COUNTRIES.map((c) => (
+                  <option key={c.code} value={c.code}>{c.flag} {c.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
               <label className="mb-1.5 block text-sm font-medium text-zinc-300">Edad</label>
               <input
                 type="number"
@@ -163,6 +183,26 @@ export default function EditProfilePage() {
                 onChange={(e) => update({ age: e.target.value === "" ? "" : Number(e.target.value) })}
                 className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm text-white placeholder-zinc-500 outline-none focus:border-violet-500 transition-colors"
               />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-zinc-300">¿Qué buscás?</label>
+              <div className="grid grid-cols-2 gap-2">
+                {LOOKING_FOR_OPTIONS.map(({ value, label, description }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => update({ lookingFor: value })}
+                    className={`flex flex-col items-start rounded-xl border-2 px-3 py-2.5 text-left transition-all ${
+                      profile.lookingFor === value
+                        ? "border-violet-500 bg-violet-500/10 text-violet-300"
+                        : "border-zinc-700 text-zinc-400 hover:border-zinc-600"
+                    }`}
+                  >
+                    <span className="text-sm font-semibold">{label}</span>
+                    <span className="text-xs opacity-70">{description}</span>
+                  </button>
+                ))}
+              </div>
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-zinc-300">Bio</label>

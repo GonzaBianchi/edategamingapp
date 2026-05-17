@@ -1,6 +1,7 @@
 "use client";
 
 import { PhotoUpload } from "@/components/profile/PhotoUpload";
+import { COUNTRIES } from "@/lib/constants/countries";
 import { OnboardingData } from "../page";
 
 interface Props {
@@ -25,6 +26,24 @@ export function StepPersonal({ data, update }: Props) {
             photos={data.photos}
             onChange={(photos) => update({ photos })}
           />
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-zinc-300">
+            País
+          </label>
+          <select
+            value={data.nationality}
+            onChange={(e) => update({ nationality: e.target.value })}
+            className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm text-white outline-none focus:border-violet-500 transition-colors"
+          >
+            <option value="">Seleccioná tu país</option>
+            {COUNTRIES.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.flag} {c.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>

@@ -24,8 +24,9 @@ export interface IUser extends Document {
   age: number;
   riotAccount?: IRiotAccount;
   games: IGame[];
+  nationality: string;
   schedule: string[];
-  lookingFor: ("duo" | "group")[];
+  lookingFor: "duo" | "pareja" | "ambos" | "no_se";
   swipedRight: mongoose.Types.ObjectId[];
   swipedLeft: mongoose.Types.ObjectId[];
   matches: mongoose.Types.ObjectId[];
@@ -59,8 +60,9 @@ const UserSchema = new Schema<IUser>(
     age: { type: Number, min: 13 },
     riotAccount: { type: RiotAccountSchema },
     games: { type: [GameSchema], default: [] },
+    nationality: { type: String, default: "" },
     schedule: { type: [String], default: [] },
-    lookingFor: { type: [String], enum: ["duo", "group"], default: ["duo"] },
+    lookingFor: { type: String, enum: ["duo", "pareja", "ambos", "no_se"], default: "no_se" },
     swipedRight: [{ type: Schema.Types.ObjectId, ref: "User" }],
     swipedLeft: [{ type: Schema.Types.ObjectId, ref: "User" }],
     matches: [{ type: Schema.Types.ObjectId, ref: "User" }],

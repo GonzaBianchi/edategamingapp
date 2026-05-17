@@ -28,10 +28,11 @@ export interface OnboardingData {
   age: string;
   bio: string;
   photos: string[];
+  nationality: string;
   riotAccount: RiotAccountData | null;
   games: GameData[];
   schedule: string[];
-  lookingFor: string[];
+  lookingFor: string;
 }
 
 const STEPS = ["Sobre vos", "Cuenta Riot", "Tus juegos", "¿Qué buscás?"];
@@ -40,10 +41,11 @@ const INITIAL: OnboardingData = {
   age: "",
   bio: "",
   photos: [],
+  nationality: "",
   riotAccount: null,
   games: [],
   schedule: [],
-  lookingFor: ["duo"],
+  lookingFor: "no_se",
 };
 
 export default function OnboardingPage() {
@@ -72,6 +74,7 @@ export default function OnboardingPage() {
           age: Number(data.age),
           bio: data.bio,
           photos: data.photos,
+          nationality: data.nationality,
           riotAccount: data.riotAccount,
           games: data.games,
           schedule: data.schedule,

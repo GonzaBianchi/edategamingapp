@@ -30,7 +30,6 @@ export async function GET(req: NextRequest) {
   const filter: Record<string, unknown> = {
     _id: { $nin: excludeIds },
     onboardingComplete: true,
-    lookingFor: "duo",
   };
 
   if (game) {
@@ -38,7 +37,7 @@ export async function GET(req: NextRequest) {
   }
 
   const profiles = await User.find(filter)
-    .select("username avatar photos bio age games riotAccount schedule")
+    .select("username avatar photos bio age nationality lookingFor games riotAccount schedule")
     .limit(20)
     .lean();
 

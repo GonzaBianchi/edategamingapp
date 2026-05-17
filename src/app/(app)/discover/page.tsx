@@ -13,6 +13,8 @@ interface Profile {
   photos: string[];
   bio: string;
   age: number;
+  nationality: string;
+  lookingFor: string;
   games: { name: string; rank: string; role: string; server: string }[];
   riotAccount?: { gameName: string; tagLine: string; showStats: boolean };
 }

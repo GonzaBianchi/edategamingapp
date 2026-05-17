@@ -5,6 +5,7 @@ import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { X, Heart } from "lucide-react";
+import { getCountry } from "@/lib/constants/countries";
 
 interface GameInfo {
   name: string;
@@ -13,6 +14,13 @@ interface GameInfo {
   server: string;
 }
 
+const LOOKING_FOR_LABELS: Record<string, string> = {
+  duo: "Busca duo",
+  pareja: "Busca pareja",
+  ambos: "Duo o pareja",
+  no_se: "Explorando",
+};
+
 interface Profile {
   _id: string;
   username: string;
@@ -20,6 +28,8 @@ interface Profile {
   photos: string[];
   bio: string;
   age: number;
+  nationality: string;
+  lookingFor: string;
   games: GameInfo[];
   riotAccount?: { gameName: string; tagLine: string; showStats: boolean };
 }
@@ -83,13 +93,21 @@ export function SwipeCard({ profile, onSwipe, isTop }: SwipeCardProps) {
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-5">
           <div className="flex items-end justify-between">
             <div className="flex-1">
-              <h2 className="text-2xl font-bold">
-                {profile.username}, {profile.age}
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-2xl font-bold">
+                  {profile.username}{profile.age ? `, ${profile.age}` : ""}
+                </h2>
+                {profile.nationality && (
+                  <span className="text-xl leading-none">{getCountry(profile.nationality)?.flag}</span>
+                )}
+              </div>
               {profile.riotAccount && (
                 <p className="text-sm text-zinc-300">
                   {profile.riotAccount.gameName}#{profile.riotAccount.tagLine}
                 </p>
+              )}
+              {profile.lookingFor && (
+                <p className="text-xs text-violet-300">{LOOKING_FOR_LABELS[profile.lookingFor]}</p>
               )}
               {profile.bio && (
                 <p className="mt-1 line-clamp-2 text-sm text-zinc-400">{profile.bio}</p>
